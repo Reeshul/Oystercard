@@ -14,5 +14,11 @@ describe Oystercard do
 
   it 'can top up the balance' do
     expect{ oystercard.topup(1) }.to change{oystercard.balance}.by 1
-end
+  end
+
+  it 'balance can not be more than 90' do
+    oystercard.topup(Oystercard::LIMIT)
+    expect { oystercard.topup(1) }.to raise_error("Balance can't be more than #{Oystercard::LIMIT}")
+  end
+
 end
