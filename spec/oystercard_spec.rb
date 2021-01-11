@@ -4,8 +4,15 @@ describe Oystercard do
 
   subject(:oystercard) { Oystercard.new }
 
-  it 'allows money to be topped up' do
+  it 'displays balance' do
     expect(oystercard.balance).to eq 0 
   end
-    
+
+  it 'tops up oystercard'do
+  expect(oystercard).to respond_to(:topup).with(1).argument
+  end
+
+  it 'can top up the balance' do
+    expect{ oystercard.topup(1) }.to change{oystercard.balance}.by 1
+end
 end
