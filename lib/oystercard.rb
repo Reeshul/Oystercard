@@ -12,6 +12,10 @@ class Oystercard
     raise "Balance can't be more than #{LIMIT}" if max_balance?
   end
 
+  def deduct(amount)
+    @balance -= amount
+  end
+
   private 
 
   def max_balance?

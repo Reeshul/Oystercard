@@ -21,4 +21,7 @@ describe Oystercard do
     expect { oystercard.topup(1) }.to raise_error("Balance can't be more than #{Oystercard::LIMIT}")
   end
 
+  it 'deducts money from oystercard' do
+    expect{oystercard.deduct(1)}.to change{oystercard.balance}.by -1
+  end
 end
