@@ -22,7 +22,7 @@ describe Oystercard do
   end
 
   it 'deducts money from oystercard' do
-    expect{oystercard.deduct(1)}.to change{oystercard.balance}.by -1
+    expect{oystercard.send(:deduct, 1)}.to change{oystercard.balance}.by -1
   end
 
   it 'tells us whether we\'re in a journey' do
@@ -62,6 +62,12 @@ describe Oystercard do
   it 'returns an error if an oystercard has insufficient balance for a fare' do
     oystercard.balance <= 1
     expect { oystercard.touch_in }. to raise_error("Insufficient balance")
+  end
+
+  it 'will reduce the balance on the oystercard when we touch out' do
+    oystercard.topup(Oystercard::MIN_BALANCE)
+    oystercard.touch_in
+    expect { oystercard.touch_out }.to change{oystercard.balance}.by(-Oystercard::MINIMUM_FARE)
   end
 
 end
