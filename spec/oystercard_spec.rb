@@ -5,7 +5,7 @@ describe Oystercard do
   subject(:oystercard) { Oystercard.new(1) }
   let(:entry_station){ double :station}
   let(:exit_station){ double :station}
-  let(:journey){ {entry_station: entry_station, exit_station: exit_station} }
+  let(:journey) { Journey.new("Stanmore") }
   
 
   it 'displays balance' do
@@ -21,8 +21,8 @@ describe Oystercard do
   end
 
   it 'balance can not be more than 90' do
-    oystercard.topup(Oystercard::LIMIT - 1)
-    expect { oystercard.topup(1) }.to raise_error("Balance can't be more than #{Oystercard::LIMIT}")
+    oystercard.topup(Oystercard::MAX_BALANCE - 1)
+    expect { oystercard.topup(1) }.to raise_error("Balance can't be more than #{Oystercard::MAX_BALANCE}")
   end
 
   it 'deducts money from oystercard' do
@@ -57,6 +57,7 @@ describe Oystercard do
   end
 
   it 'status will return false when oystercard has touched out' do
+    oystercard.touch_in(entry_station)
     expect(oystercard.touch_out(exit_station)).to be false
   end
 
@@ -67,18 +68,18 @@ describe Oystercard do
 
   it 'will reduce the balance on the oystercard when we touch out' do
     oystercard.touch_in(entry_station)
-    expect { oystercard.touch_out(exit_station) }.to change{oystercard.balance}.by(-Oystercard::MINIMUM_FARE)
+    expect { oystercard.touch_out(exit_station) }.to change{oystercard.balance}.by(-Journey::MINIMUM_FARE)
   end
 
   it 'remembers the station where we touched in' do
     oystercard.touch_in(entry_station)
-    expect(oystercard.entry_station).to eq entry_station
+    expect(oystercard.current_journey.entry_station).to eq entry_station
   end
 
   it 'remembers the station where we touched out' do
     oystercard.touch_in(entry_station)
     oystercard.touch_out(exit_station)
-    expect(oystercard.exit_station).to eq exit_station
+    expect(oystercard.list_of_journeys[-1].exit_station).to eq exit_station
   end
 
   it 'shows us all my previous trips' do
@@ -92,7 +93,7 @@ describe Oystercard do
   it 'card creates a journey after touching in and touching out' do
     oystercard.touch_in(entry_station)
     oystercard.touch_out(exit_station)
-    expect(oystercard.list_of_journeys).to include journey
+    expect(oystercard.list_of_journeys[-1]).to be_a Journey
   end
 
 end

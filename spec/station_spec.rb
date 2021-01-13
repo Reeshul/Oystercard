@@ -1,6 +1,6 @@
 require 'station'
 
-describe 'Station' do
+describe Station do
 
   subject(:station) { Station.new(name: "Stanmore", zone: 5) }
 

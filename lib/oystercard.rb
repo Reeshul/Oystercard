@@ -1,51 +1,60 @@
+require_relative 'Journey'
+
 class Oystercard
 
-  attr_reader :balance, :entry_station, :list_of_journeys, :exit_station
+  attr_reader :balance, :list_of_journeys, :current_journey
 
-  LIMIT = 90
+  MAX_BALANCE = 90
   MIN_BALANCE = 1
-  MINIMUM_FARE = 1
 
   def initialize(balance = 0)
     @balance = balance
-    @entry_station = nil
-    @exit_station = nil
     @list_of_journeys = []
+    @current_journey = nil
   end
 
   def topup(amount)
     @balance += amount
-    raise "Balance can't be more than #{LIMIT}" if max_balance?
+    raise "Balance can't be more than #{MAX_BALANCE}" if max_balance?
   end
 
   def touch_in(entry_station)
-    @exit_station = nil
+    no_touch_in_penalty if in_journey?
     raise "Insufficient balance" if @balance < MIN_BALANCE
-    @entry_station = entry_station
+    @current_journey = Journey.new(entry_station)
     in_journey?
   end
 
   def touch_out(exit_station)
-    deduct(MINIMUM_FARE)
-    @exit_station = exit_station
-    @list_of_journeys << { :entry_station => @entry_station, 
-                            :exit_station => @exit_station }
-    @entry_station = nil
+    no_touch_out_penalty unless in_journey?
+    @current_journey.exit_station = exit_station
+    @list_of_journeys << @current_journey
+    deduct(@current_journey.fare)
+    @current_journey = nil
     in_journey?
   end
 
   def in_journey?
-    !!entry_station
+    @current_journey == nil ? false : true
   end
 
   private
 
   def max_balance?
-    @balance > LIMIT
+    @balance > MAX_BALANCE
   end
 
   def deduct(amount)
     @balance -= amount
+  end
+
+  def no_touch_in_penalty
+    @current_journey.exit_station = "PENALTY_FARE"
+    @current_journey = nil
+  end
+
+  def no_touch_out_penalty
+    @current_journey = Journey.new("PENALTY_FARE")
   end
 
 end
