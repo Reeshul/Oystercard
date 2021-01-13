@@ -27,24 +27,24 @@ describe Oystercard do
   end
 
   it 'tells us whether we\'re in a journey' do
-    expect(oystercard).to respond_to(:journey_status)
+    expect(oystercard).to respond_to(:in_journey?)
   end
 
   it 'status return false if oystercard is initially not in a journey' do
-    expect(oystercard.journey_status).to be false
+    expect(oystercard.in_journey?).to be false
   end
 
   it 'status return true if oystercard with sufficient balance is in a journey' do
     oystercard.topup(Oystercard::MIN_BALANCE)
     oystercard.touch_in(station)
-    expect(oystercard.journey_status).to be true
+    expect(oystercard.in_journey?).to be true
   end
 
   it 'status return false if oystercard with sufficient balance is no longer in a journey' do
     oystercard.topup(Oystercard::MIN_BALANCE)
     oystercard.touch_in(station)
     oystercard.touch_out
-    expect(oystercard.journey_status).to be false
+    expect(oystercard.in_journey?).to be false
   end
 
   it 'tells us whether we\'ve touched in' do
