@@ -2,11 +2,14 @@ require 'oystercard'
 
 describe Oystercard do
 
-  subject(:oystercard) { Oystercard.new }
-  let(:station){ double :station}
+  subject(:oystercard) { Oystercard.new(1) }
+  let(:entry_station){ double :station}
+  let(:exit_station){ double :station}
+  let(:journey){ {entry_station: entry_station, exit_station: exit_station} }
+  
 
   it 'displays balance' do
-    expect(oystercard.balance).to eq 0
+    expect(oystercard.balance).to eq 1
   end
 
   it 'tops up oystercard'do
@@ -18,7 +21,7 @@ describe Oystercard do
   end
 
   it 'balance can not be more than 90' do
-    oystercard.topup(Oystercard::LIMIT)
+    oystercard.topup(Oystercard::LIMIT - 1)
     expect { oystercard.topup(1) }.to raise_error("Balance can't be more than #{Oystercard::LIMIT}")
   end
 
@@ -35,15 +38,13 @@ describe Oystercard do
   end
 
   it 'status return true if oystercard with sufficient balance is in a journey' do
-    oystercard.topup(Oystercard::MIN_BALANCE)
-    oystercard.touch_in(station)
+    oystercard.touch_in(entry_station)
     expect(oystercard.in_journey?).to be true
   end
 
   it 'status return false if oystercard with sufficient balance is no longer in a journey' do
-    oystercard.topup(Oystercard::MIN_BALANCE)
-    oystercard.touch_in(station)
-    oystercard.touch_out
+    oystercard.touch_in(entry_station)
+    oystercard.touch_out(exit_station)
     expect(oystercard.in_journey?).to be false
   end
 
@@ -52,29 +53,46 @@ describe Oystercard do
   end
 
   it 'status return true if oystercard has touched in and has sufficient balance' do
-    oystercard.topup(Oystercard::MIN_BALANCE)
-    expect(oystercard.touch_in(station)).to be true
+    expect(oystercard.touch_in(entry_station)).to be true
   end
 
   it 'status will return false when oystercard has touched out' do
-    expect(oystercard.touch_out).to be false
+    expect(oystercard.touch_out(exit_station)).to be false
   end
 
   it 'returns an error if an oystercard has insufficient balance for a fare' do
-    oystercard.balance <= 1
-    expect { oystercard.touch_in(station) }. to raise_error("Insufficient balance")
+    card_with_zero_balance = Oystercard.new(0)
+    expect { card_with_zero_balance.touch_in(entry_station) }. to raise_error("Insufficient balance")
   end
 
   it 'will reduce the balance on the oystercard when we touch out' do
-    oystercard.topup(Oystercard::MIN_BALANCE)
-    oystercard.touch_in(station)
-    expect { oystercard.touch_out }.to change{oystercard.balance}.by(-Oystercard::MINIMUM_FARE)
+    oystercard.touch_in(entry_station)
+    expect { oystercard.touch_out(exit_station) }.to change{oystercard.balance}.by(-Oystercard::MINIMUM_FARE)
   end
 
   it 'remembers the station where we touched in' do
-    oystercard.topup(Oystercard::MIN_BALANCE)
-    oystercard.touch_in(station)
-    expect(oystercard.entry_station).to eq station
+    oystercard.touch_in(entry_station)
+    expect(oystercard.entry_station).to eq entry_station
+  end
+
+  it 'remembers the station where we touched out' do
+    oystercard.touch_in(entry_station)
+    oystercard.touch_out(exit_station)
+    expect(oystercard.exit_station).to eq exit_station
+  end
+
+  it 'shows us all my previous trips' do
+    expect(oystercard).to respond_to(:list_of_journeys)
+  end
+
+  it 'card initially has an empty list of journeys' do
+    expect(oystercard.list_of_journeys).to eq []
+  end
+
+  it 'card creates a journey after touching in and touching out' do
+    oystercard.touch_in(entry_station)
+    oystercard.touch_out(exit_station)
+    expect(oystercard.list_of_journeys).to include journey
   end
 
 end
